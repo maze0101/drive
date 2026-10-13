@@ -592,7 +592,9 @@ function shareDialog(it) {
     try { r = await api('/api/share?path=' + enc(it.path)); } catch (e) { return toast(e.message); }
     body.replaceChildren();
     if (r.share) {
-      const inp = el('input', {className: 'linkbox', value: r.base + '/s/' + r.share.token, readOnly: true, onclick: e => e.target.select()});
+      // Интернэтийн холбоосоор нээсэн бол тэр хаягийг нь ашиглана
+      const base = ['localhost', '127.0.0.1'].includes(location.hostname) ? r.base : location.origin;
+      const inp = el('input', {className: 'linkbox', value: base + '/s/' + r.share.token, readOnly: true, onclick: e => e.target.select()});
       body.append(
         el('p', {textContent: `Энэ холбоостой хэн ч нууц үггүйгээр ${it.isDir ? 'хавтсыг ZIP-ээр татаж' : 'файлыг нээж, татаж'} авна.`}),
         inp,
@@ -615,7 +617,7 @@ function shareDialog(it) {
             show();
           }})));
     }
-    if (r.warn) body.append(el('p', {className: 'warn', textContent: r.warn}));
+    if (r.warn && ['localhost', '127.0.0.1'].includes(location.hostname)) body.append(el('p', {className: 'warn', textContent: r.warn}));
   }
   show();
 }

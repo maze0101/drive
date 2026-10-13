@@ -2,7 +2,8 @@
 # Ажиллуулах: start.bat (эсвэл powershell -ExecutionPolicy Bypass -File server.ps1)
 #   -Lan   : сүлжээний бусад төхөөрөмж (утас, өөр компьютер)-өөс хандахыг зөвшөөрнө
 #   -Https : өөрөө үүсгэсэн гэрчилгээгээр HTTPS ажиллуулна (Администратор эрх шаардлагатай)
-param([switch]$Lan, [switch]$Https)
+#   -Tunnel: Cloudflare Tunnel-ээр интернэтээс хандах нийтийн https холбоос гаргана (cloudflared хэрэгтэй)
+param([switch]$Lan, [switch]$Https, [switch]$Tunnel)
 
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing, System.IO.Compression
@@ -395,6 +396,8 @@ $handler = {
         $route = $req.Url.AbsolutePath
         $method = $req.HttpMethod
         $ip = $req.RemoteEndPoint.Address.ToString()
+        # Туннелээр ирсэн хүсэлт бүгд 127.0.0.1-ээс ирдэг тул жинхэнэ IP-г Cloudflare-ийн толгойноос авна
+        if ([Net.IPAddress]::IsLoopback($req.RemoteEndPoint.Address) -and $req.Headers['CF-Connecting-IP']) { $ip = $req.Headers['CF-Connecting-IP'] }
 
         # Хуваалцсан холбоос: нууц үггүйгээр нээгдэнэ
         if ($route.StartsWith('/s/') -and $method -eq 'GET') {
@@ -782,6 +785,41 @@ Write-Host "Хадгалах газар: $($cfg.Root)   Багтаамж: $($con
 Write-Host 'Зогсоохдоо Ctrl+C дарна.'
 Start-Process $url
 
+$tunnelProc = $null
+if ($Tunnel) {
+    $cf = @((Get-Command cloudflared -ErrorAction SilentlyContinue).Source,
+        "${env:ProgramFiles(x86)}\cloudflared\cloudflared.exe", "$env:ProgramFiles\cloudflared\cloudflared.exe") |
+        Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+    if (-not $cf) {
+        Write-Host 'cloudflared олдсонгүй. Суулгах: winget install Cloudflare.cloudflared' -ForegroundColor Red
+    } else {
+        Write-Host 'Интернэтийн холбоос үүсгэж байна...'
+        $tunnelLog = Join-Path $metaDir 'tunnel.log'
+        Remove-Item -LiteralPath $tunnelLog -Force -ErrorAction SilentlyContinue
+        # HttpListener зөвхөн localhost нэртэй хүсэлт хүлээж авдаг тул Host толгойг localhost болгоно
+        $cfArgs = @('tunnel', '--no-autoupdate', '--url', $url, '--http-host-header', 'localhost')
+        if ($Https) { $cfArgs += '--no-tls-verify' }
+        $tunnelProc = Start-Process -FilePath $cf -ArgumentList $cfArgs -RedirectStandardError $tunnelLog -WindowStyle Hidden -PassThru
+        $publicUrl = $null
+        for ($i = 0; $i -lt 60 -and -not $publicUrl -and -not $tunnelProc.HasExited; $i++) {
+            Start-Sleep -Milliseconds 500
+            $log = Get-Content -LiteralPath $tunnelLog -Raw -ErrorAction SilentlyContinue
+            if ($log -match 'https://[a-z0-9-]+\.trycloudflare\.com') { $publicUrl = $Matches[0] }
+        }
+        if ($publicUrl) {
+            Set-Clipboard -Value $publicUrl
+            Write-Host ''
+            Write-Host "  Интернэтийн холбоос: $publicUrl" -ForegroundColor Cyan
+            Write-Host '  (clipboard руу хуулсан - Ctrl+V дарж явуулна уу)' -ForegroundColor Cyan
+            Write-Host "  Нэвтрэх нэр: $($cfg.User)   Нууц үг: config.json дотор" -ForegroundColor Cyan
+            Write-Host '  Анхаар: энэ холбоос сервер асах бүрт өөрчлөгдөнө.' -ForegroundColor Yellow
+            Write-Host ''
+        } else {
+            Write-Host "Туннель үүсгэж чадсангүй. Дэлгэрэнгүй: $tunnelLog" -ForegroundColor Red
+        }
+    }
+}
+
 $lastScan = Get-Date
 try {
     while ($listener.IsListening) {
@@ -799,5 +837,6 @@ try {
     }
 }
 finally {
+    if ($tunnelProc -and -not $tunnelProc.HasExited) { Stop-Process -Id $tunnelProc.Id -Force -ErrorAction SilentlyContinue }
     $listener.Stop(); $listener.Close(); $pool.Close()
 }
