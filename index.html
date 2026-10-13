@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Миний Драйв</title>
+<style>
+:root{--bg:#f6f8fc;--panel:#fff;--text:#1f1f1f;--muted:#5f6368;--line:#e3e6ea;--accent:#0b57d0;--accent-soft:#d3e3fd;--hover:#eef2f8;--danger:#b3261e;--warn:#e37400}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1c1e;--panel:#232427;--text:#e8eaed;--muted:#9aa0a6;--line:#3a3c40;--accent:#a8c7fa;--accent-soft:#2b4a78;--hover:#2d2f33;--danger:#f2b8b5;--warn:#fdd663}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font:14px/1.4 "Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);display:grid;grid-template-columns:256px 1fr;height:100vh;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+select{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+aside{padding:16px 12px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.brand{font-size:21px;font-weight:600;display:flex;gap:10px;align-items:center;padding:4px 10px}
+.newbtn{display:flex;align-items:center;gap:12px;border:0;background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.25);padding:16px 22px;border-radius:16px;font-weight:500;width:fit-content}
+.newbtn:hover{background:var(--hover)}
+.newbtn span{font-size:24px;line-height:1}
+.side{display:flex;flex-direction:column;gap:2px}
+.side button{border:0;background:none;text-align:left;padding:9px 16px;border-radius:999px;display:flex;gap:12px;align-items:center;white-space:nowrap}
+.side button:hover{background:var(--hover)}
+.side button.active{background:var(--accent-soft);font-weight:600}
+.storage{padding:0 10px;margin-top:auto}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.storage small{color:var(--muted)}
+main{background:var(--panel);margin:12px 12px 12px 0;border-radius:16px;display:flex;flex-direction:column;min-width:0;position:relative}
+header{display:flex;gap:12px;align-items:center;padding:14px 20px;flex-wrap:wrap}
+.crumbs{display:flex;align-items:center;flex-wrap:wrap;font-size:20px;flex:1;min-width:0}
+.crumbs button{border:0;background:none;padding:4px 10px;border-radius:999px;font-size:inherit}
+.crumbs button:hover{background:var(--hover)}
+.crumbs .sep{color:var(--muted)}
+.crumbs .title{padding:4px 10px}
+.search{border:0;background:var(--bg);padding:10px 16px;border-radius:999px;min-width:0;width:280px;color:var(--text);font:inherit}
+.tools{display:flex;gap:6px;align-items:center}
+.toggle{border:1px solid var(--line);background:none;border-radius:999px;padding:7px 14px}
+.toggle:hover{background:var(--hover)}
+.selbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:0 20px 6px;padding:4px 8px;background:var(--accent-soft);border-radius:999px}
+.selbar button{border:0;background:none;padding:6px 12px;border-radius:999px}
+.selbar button:hover{background:var(--hover)}
+.selbar button.danger{color:var(--danger)}
+.selbar .count{font-weight:600;margin-right:8px}
+.content{flex:1;overflow:auto;padding:4px 20px 20px}
+.section{color:var(--muted);font-weight:500;margin:14px 0 10px}
+.note{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--bg);border-radius:10px;padding:10px 14px;margin:8px 0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.card{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:default;user-select:none;position:relative;min-width:0}
+.card:hover{background:var(--hover)}
+.card.sel,tr.item.sel td{background:var(--accent-soft)}
+.dropto{outline:2px solid var(--accent);outline-offset:-2px}
+.card.file{flex-direction:column;align-items:stretch;padding:8px}
+.card.file .thumb{height:120px;border-radius:8px;background:var(--panel);display:grid;place-items:center;overflow:hidden}
+.card.file .thumb img{width:100%;height:100%;object-fit:cover;pointer-events:none}
+.card .row{display:flex;align-items:center;gap:10px;min-width:0}
+.name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.star{color:#f4b400}
+.more{border:0;background:none;border-radius:50%;width:30px;height:30px;font-size:18px;flex:none}
+.more:hover{background:var(--line)}
+.badge{font-size:11px;font-weight:700;color:#fff;border-radius:4px;padding:2px 5px;flex:none;text-transform:uppercase;max-width:46px;overflow:hidden}
+.bigbadge{font-size:22px;padding:8px 12px;border-radius:8px;max-width:none}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th.sortable{cursor:pointer}
+th.sortable:hover{color:var(--text)}
+td{padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr.item{user-select:none}
+tr.item:hover td{background:var(--hover)}
+td.n{display:flex;gap:10px;align-items:center;max-width:50vw}
+td.n .name{overflow:hidden;text-overflow:ellipsis}
+td.loc{color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.empty{text-align:center;color:var(--muted);padding:80px 20px}
+.menu{position:fixed;background:var(--panel);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:6px 0;min-width:200px;z-index:50}
+.menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 18px}
+.menu button:hover{background:var(--hover)}
+.menu button.danger{color:var(--danger)}
+.drop{position:absolute;inset:0;border:3px dashed var(--accent);border-radius:16px;background:color-mix(in srgb,var(--accent-soft) 60%,transparent);display:grid;place-items:center;font-size:20px;font-weight:600;pointer-events:none;z-index:5}
+.uploads{position:fixed;right:20px;bottom:20px;width:360px;max-width:calc(100vw - 32px);background:var(--panel);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.3);overflow:hidden;z-index:15}
+.uploads h4{margin:0;padding:10px 12px 10px 16px;background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.uploads h4 button{border:0;background:none;padding:4px 8px;border-radius:999px;font-weight:400}
+.uploads h4 button:hover{background:var(--hover)}
+.uploads ul{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto}
+.uploads li{padding:8px 16px;border-bottom:1px solid var(--line)}
+.uploads li>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.uploads li>div:first-child>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uploads .st{display:flex;align-items:center;gap:4px;flex:none}
+.uploads .st button{border:0;background:none;border-radius:50%;width:24px;height:24px;color:var(--muted)}
+.uploads .st button:hover{background:var(--hover)}
+.uploads li.err{color:var(--danger)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#323232;color:#fff;padding:12px 20px;border-radius:8px;z-index:60;display:flex;align-items:center;gap:16px;max-width:calc(100vw - 32px);white-space:pre-line}
+.toast button{border:0;background:none;color:#8ab4f8;font-weight:600;padding:0}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:40;padding:16px}
+.modal{background:var(--panel);color:var(--text);border-radius:16px;padding:20px 22px;width:460px;max-width:100%;max-height:calc(100vh - 32px);display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.modal h3{margin:0;font-weight:500;font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal p{margin:0}
+.acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:none;border-radius:999px;padding:8px 18px}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);color:var(--panel);border-color:var(--accent)}
+.btn.primary:disabled{opacity:.45;cursor:default}
+.btn.danger{color:var(--danger)}
+.mcrumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px}
+.mcrumbs button{border:0;background:none;padding:4px 8px;border-radius:999px}
+.mcrumbs button:hover{background:var(--hover)}
+.mlist{overflow:auto;min-height:160px;max-height:320px;border:1px solid var(--line);border-radius:10px;padding:4px}
+.mrow{display:flex;gap:10px;align-items:center;width:100%;border:0;background:none;padding:8px 10px;border-radius:8px;text-align:left}
+.mrow:hover{background:var(--hover)}
+.linkbox{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+.muted{color:var(--muted)}
+.warn{color:var(--warn)}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;flex-direction:column;z-index:25}
+.viewer header{color:#fff}
+.viewer header button{border:0;background:none;color:#fff;font-size:22px;border-radius:50%;width:40px;height:40px}
+.viewer header button:hover{background:rgba(255,255,255,.12)}
+.viewer .body{flex:1;display:flex;align-items:center;min-height:0;padding:0 8px 16px}
+.viewer .stage{flex:1;height:100%;display:flex;align-items:center;justify-content:center;min-width:0}
+.viewer img,.viewer video{max-width:100%;max-height:100%}
+.viewer audio{width:min(500px,100%)}
+.viewer .doc{width:min(1000px,100%);height:100%;border:0;background:#fff;border-radius:8px}
+.viewer pre.doc{color:#1f1f1f;margin:0;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:13px/1.5 Consolas,monospace}
+.viewer .nav{border:0;background:rgba(255,255,255,.12);color:#fff;width:48px;height:48px;border-radius:50%;font-size:28px;line-height:1;flex:none}
+.viewer .nav:hover{background:rgba(255,255,255,.25)}
+.nopreview{color:#fff;text-align:center;display:grid;gap:14px;justify-items:center}
+@media (max-width:720px){
+  body{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  aside{flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 16px}
+  .brand{font-size:18px;padding:0}
+  .newbtn{padding:10px 16px}
+  .side{flex-direction:row;overflow-x:auto;width:100%;order:3}
+  .side button{padding:7px 12px}
+  .storage{margin:0;flex:1;min-width:160px}
+  main{margin:0 8px 8px}
+  header{padding:12px}
+  .search{width:100%;order:3}
+  .content{padding:4px 12px 12px}
+  .selbar{margin:0 12px 6px;border-radius:12px}
+  .viewer .nav{width:36px;height:36px;font-size:22px}
+}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f9d58" d="M8 3h8l7 12h-8z"/><path fill="#4285f4" d="M1 15l4 7h14l-4-7z" /><path fill="#f4b400" d="M8 3L1 15l4 7 7-12z"/></svg>
+    Миний Драйв
+  </div>
+  <button class="newbtn" id="newBtn"><span>+</span> Шинэ</button>
+  <nav class="side" id="side">
+    <button data-mode="drive">🏠 Миний Драйв</button>
+    <button data-mode="recent">🕘 Сүүлд нээсэн</button>
+    <button data-mode="starred">☆ Одтой</button>
+    <button data-mode="trash">🗑 Хогийн сав</button>
+  </nav>
+  <div class="storage">
+    <div id="usedText">…</div>
+    <div class="bar"><i id="usedBar" style="width:0"></i></div>
+    <small id="diskText"></small>
+  </div>
+</aside>
+<main id="main">
+  <header>
+    <nav class="crumbs" id="crumbs"></nav>
+    <input class="search" id="search" placeholder="Хайх (Enter = бүх Драйваас)" type="search">
+    <div class="tools">
+      <select id="sortSel" title="Эрэмбэлэх">
+        <option value="name">Нэр</option>
+        <option value="modified">Огноо</option>
+        <option value="size">Хэмжээ</option>
+      </select>
+      <button class="toggle" id="sortDir" title="Эрэмбийн чиглэл"></button>
+      <button class="toggle" id="viewToggle"></button>
+    </div>
+  </header>
+  <div class="selbar" id="selbar" hidden></div>
+  <div class="content" id="content"></div>
+</main>
+<input type="file" id="fileInput" multiple hidden>
+<input type="file" id="dirInput" webkitdirectory multiple hidden>
+
+<script>
+const $ = s => document.querySelector(s);
+const store = {
+  get: (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+};
+let mode = 'drive', cur = '', query = '';
+let data = {items: [], used: 0, quota: 0, diskFree: 0};
+let shown = [], sel = new Set(), anchor = null;
+let view = store.get('view', 'grid'), sortKey = store.get('sortKey', 'name'), sortDir = +store.get('sortDir', '1') || 1;
+const coarse = matchMedia('(pointer: coarse)').matches;
+const titles = {recent: 'Сүүлд нээсэн', starred: 'Одтой', trash: 'Хогийн сав', search: 'Хайлтын үр дүн'};
+
+const fmt = b => { const u = ['B','KB','MB','GB','TB']; let i = 0; while (b >= 1024 && i < 4) { b /= 1024; i++; } return (i ? b.toFixed(1) : b) + ' ' + u[i]; };
+const join = (a, b) => a && b ? a + '/' + b : a || b;
+const parentOf = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '';
+const enc = encodeURIComponent;
+const ext = n => (n.includes('.') ? n.split('.').pop().toLowerCase() : '');
+const IMG = ['jpg','jpeg','png','gif','webp','svg','bmp'];
+const VID = ['mp4','m4v','webm','ogv'];
+const AUD = ['mp3','wav','ogg','m4a','flac','aac'];
+const TXT = ['txt','md','json','js','ts','css','html','htm','xml','csv','tsv','log','ps1','bat','cmd','py','java','c','cpp','h','cs','go','rs','php','rb','sh','yml','yaml','ini','cfg','conf','sql'];
+const is = (list, n) => list.includes(ext(n));
+const fileUrl = (p, inline) => '/api/download?path=' + enc(p) + (inline ? '&inline=1' : '');
+const thumbUrl = it => ext(it.name) === 'svg' ? fileUrl(it.path, true) : '/api/thumb?path=' + enc(it.path) + '&v=' + enc(it.modified + '_' + it.size);
+const loc = p => p ? 'Миний Драйв › ' + p.split('/').join(' › ') : 'Миний Драйв';
+const locText = it => loc(parentOf(mode === 'trash' ? it.orig : it.path));
+const colors = {pdf:'#d93025',doc:'#1a73e8',docx:'#1a73e8',xls:'#188038',xlsx:'#188038',csv:'#188038',ppt:'#e37400',pptx:'#e37400',zip:'#5f6368',rar:'#5f6368','7z':'#5f6368',mp4:'#c5221f',webm:'#c5221f',mp3:'#9334e6',wav:'#9334e6',jpg:'#d93025',jpeg:'#d93025',png:'#d93025',txt:'#5f6368'};
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'style') e.style.cssText = v;
+    else e[k] = v;
+  }
+  for (const k of kids) if (k != null) e.append(k);
+  return e;
+}
+function folderIcon(size = 24) {
+  const s = el('span');
+  s.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><path fill="#5f6368" d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8z"/></svg>`;
+  s.style.display = 'flex';
+  return s;
+}
+function badge(name, big) {
+  const x = ext(name) || 'файл';
+  return el('span', {className: 'badge' + (big ? ' bigbadge' : ''), textContent: x, style: 'background:' + (colors[x] || '#1a73e8')});
+}
+let toastEl = null;
+function toast(msg, action) {
+  toastEl?.remove();
+  const t = toastEl = el('div', {className: 'toast'}, el('span', {textContent: msg}),
+    action && el('button', {textContent: action[0], onclick: () => { t.remove(); action[1](); }}));
+  document.body.append(t);
+  setTimeout(() => t.remove(), action ? 8000 : 3500);
+}
+const NO_SERVER = 'Сервер ажиллахгүй байна. start.bat-ыг асаагаад http://localhost:8080 хаягаар нээнэ үү (VS Code-ийн Live Server-ээр биш).';
+async function api(url, opts) {
+  let r;
+  try { r = await fetch(url, opts); } catch { throw new Error(NO_SERVER); }
+  if (!(r.headers.get('content-type') || '').includes('json')) throw new Error(NO_SERVER);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+const post = (url, body) => api(url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})});
+
+let loadSeq = 0;
+async function load(p = cur, m = mode) {
+  const seq = ++loadSeq;
+  const url = m === 'drive' ? '/api/list?path=' + enc(p) : m === 'search' ? '/api/search?q=' + enc(query) : '/api/' + m;
+  try {
+    const d = await api(url);
+    if (seq !== loadSeq) return;
+    if (m !== mode || (m === 'drive' && p !== cur)) { sel.clear(); anchor = null; }
+    data = d;
+    mode = m;
+    if (m === 'drive') cur = p;
+    render();
+  } catch (e) { toast(e.message); }
+}
+function go(m, p = '') {
+  if (m !== 'search') { query = ''; $('#search').value = ''; }
+  load(p, m);
+}
+
+function cmp(a, b) {
+  if (a.isDir !== b.isDir) return b.isDir - a.isDir;
+  let r = sortKey === 'size' ? a.size - b.size : sortKey === 'modified' ? a.modified.localeCompare(b.modified) : 0;
+  if (!r) r = a.name.localeCompare(b.name, 'mn', {numeric: true});
+  return r * sortDir;
+}
+function setSort(key) {
+  if (sortKey === key) sortDir = -sortDir; else { sortKey = key; sortDir = 1; }
+  store.set('sortKey', sortKey); store.set('sortDir', sortDir);
+  render();
+}
+
+function render() {
+  // Багтаамж
+  const pct = data.quota ? Math.min(100, data.used / data.quota * 100) : 0;
+  $('#usedText').textContent = `${fmt(data.used)} / ${fmt(data.quota)} ашигласан`;
+  $('#usedBar').style.width = pct + '%';
+  $('#usedBar').style.background = pct > 90 ? 'var(--danger)' : pct > 75 ? 'var(--warn)' : '';
+  $('#diskText').textContent = `Дискэнд бодитоор ${fmt(data.diskFree)} сул байна`;
+
+  for (const b of document.querySelectorAll('#side button')) b.classList.toggle('active', b.dataset.mode === mode);
+
+  // Замын мөр
+  const crumbs = $('#crumbs');
+  crumbs.replaceChildren();
+  if (mode === 'drive') {
+    const parts = cur ? cur.split('/') : [];
+    const rootBtn = el('button', {textContent: 'Миний Драйв', onclick: () => go('drive', '')});
+    if (parts.length) dropTarget(rootBtn, '');
+    crumbs.append(rootBtn);
+    parts.forEach((p, i) => {
+      const path = parts.slice(0, i + 1).join('/');
+      const b = el('button', {textContent: p, onclick: () => go('drive', path)});
+      if (i < parts.length - 1) dropTarget(b, path);
+      crumbs.append(el('span', {className: 'sep', textContent: '›'}), b);
+    });
+  } else {
+    crumbs.append(el('span', {className: 'title', textContent: mode === 'search' ? `${titles.search}: “${query}”` : titles[mode]}));
+  }
+
+  $('#viewToggle').textContent = view === 'grid' ? '☰ Жагсаалт' : '▦ Хүснэгт';
+  $('#sortSel').value = sortKey;
+  $('#sortDir').textContent = sortDir > 0 ? '↑' : '↓';
+  $('#sortSel').hidden = $('#sortDir').hidden = mode === 'recent';
+
+  const q = mode === 'search' ? '' : $('#search').value.trim().toLowerCase();
+  const items = data.items.filter(it => !q || it.name.toLowerCase().includes(q));
+  if (mode !== 'recent') items.sort(cmp);
+  shown = items;
+  for (const k of [...sel]) if (!items.some(i => i.path === k)) sel.delete(k);
+
+  const content = $('#content');
+  content.replaceChildren();
+  if (mode === 'trash' && items.length) {
+    content.append(el('div', {className: 'note'},
+      el('span', {textContent: 'Хогийн саванд 30 хоног болсон зүйлс автоматаар бүр мөсөн устна.'}),
+      el('button', {className: 'btn danger', textContent: 'Хогийн савыг хоослох', onclick: () => purge(null)})));
+  }
+  if (mode === 'search' && data.items.length >= 300) {
+    content.append(el('div', {className: 'note', textContent: 'Эхний 300 үр дүнг харуулж байна. Илүү тодорхой үгээр хайна уу.'}));
+  }
+
+  if (!items.length) {
+    const msgs = {
+      drive: q ? 'Тохирох файл олдсонгүй' : 'Хоосон байна. Файл, хавтсаа энд чирж оруулах эсвэл "Шинэ" товч дарна уу.',
+      recent: 'Та одоогоор файл нээгээгүй байна',
+      starred: 'Одтой зүйл алга. Файл дээр баруун товч дараад "Од нэмэх"-ийг сонгоно уу.',
+      trash: 'Хогийн сав хоосон байна',
+      search: 'Тохирох зүйл олдсонгүй',
+    };
+    const icons = {drive: '📂', recent: '🕘', starred: '☆', trash: '🗑', search: '🔍'};
+    content.append(el('div', {className: 'empty'},
+      el('div', {style: 'font-size:48px', textContent: icons[mode]}),
+      el('p', {textContent: msgs[mode]})));
+  } else if (view === 'list') renderList(content, items);
+  else renderGrid(content, items);
+  renderSelbar();
+}
+
+const nameEl = it => el('span', {className: 'name'}, it.name, it.starred ? el('span', {className: 'star', textContent: ' ★'}) : null);
+const tip = it => it.name + '\n' + (mode !== 'drive' ? 'Байршил: ' + locText(it) + '\n' : '') + (it.isDir ? '' : fmt(it.size) + ' · ') + (it.opened || it.modified);
+function moreBtn(it) {
+  return el('button', {className: 'more', textContent: '⋮', title: 'Үйлдлүүд', onclick: e => {
+    if (!sel.has(it.path)) { sel.clear(); sel.add(it.path); anchor = it.path; updateSel(); }
+    showMenu(e, actionsFor(selectedItems()));
+  }});
+}
+function thumbEl(it) {
+  if (mode !== 'trash' && is(IMG, it.name)) {
+    return el('img', {src: thumbUrl(it), loading: 'lazy', alt: '', draggable: false, onerror: e => e.target.replaceWith(badge(it.name, true))});
+  }
+  return badge(it.name, true);
+}
+
+function renderGrid(content, items) {
+  const dirs = items.filter(i => i.isDir), files = items.filter(i => !i.isDir);
+  if (dirs.length) {
+    content.append(el('div', {className: 'section', textContent: 'Хавтаснууд'}));
+    const g = el('div', {className: 'grid'});
+    for (const it of dirs) {
+      const c = el('div', {className: 'card', title: tip(it)}, folderIcon(), nameEl(it), moreBtn(it));
+      bindItem(c, it);
+      g.append(c);
+    }
+    content.append(g);
+  }
+  if (files.length) {
+    content.append(el('div', {className: 'section', textContent: 'Файлууд'}));
+    const g = el('div', {className: 'grid'});
+    for (const it of files) {
+      const c = el('div', {className: 'card file', title: tip(it)},
+        el('div', {className: 'row'}, badge(it.name), nameEl(it), moreBtn(it)),
+        el('div', {className: 'thumb'}, thumbEl(it)));
+      bindItem(c, it);
+      g.append(c);
+    }
+    content.append(g);
+  }
+}
+
+function renderList(content, items) {
+  const other = mode !== 'drive';
+  const sortable = mode !== 'recent';
+  const dateLabel = mode === 'recent' ? 'Нээсэн' : mode === 'trash' ? 'Устгасан' : 'Өөрчилсөн';
+  const th = (label, key) => el('th', key && sortable ? {className: 'sortable', onclick: () => setSort(key)} : {},
+    label + (key && sortable && key === sortKey ? (sortDir > 0 ? ' ↑' : ' ↓') : ''));
+  const tb = el('tbody');
+  for (const it of items) {
+    const tr = el('tr', {className: 'item', title: tip(it)},
+      el('td', {className: 'n'}, it.isDir ? folderIcon() : badge(it.name), nameEl(it)),
+      other ? el('td', {className: 'loc', textContent: locText(it)}) : null,
+      el('td', {textContent: it.opened || it.modified}),
+      el('td', {textContent: it.isDir ? '—' : fmt(it.size)}),
+      el('td', {}, moreBtn(it)));
+    bindItem(tr, it);
+    tb.append(tr);
+  }
+  content.append(el('div', {style: 'overflow-x:auto'}, el('table', {},
+    el('thead', {}, el('tr', {}, th('Нэр', 'name'), other ? th('Байршил') : null, th(dateLabel, 'modified'), th('Хэмжээ', 'size'), th(''))), tb)));
+}
+
+// Сонголт
+function bindItem(node, it) {
+  node.dataset.path = it.path;
+  if (sel.has(it.path)) node.classList.add('sel');
+  node.addEventListener('click', e => { if (!e.target.closest('.more')) onItemClick(it, e); });
+  node.addEventListener('dblclick', e => { if (!coarse && !e.target.closest('.more')) open(it); });
+  node.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    if (!sel.has(it.path)) { sel.clear(); sel.add(it.path); anchor = it.path; updateSel(); }
+    showMenu(e, actionsFor(selectedItems()));
+  });
+  if (mode === 'trash') return;
+  node.draggable = true;
+  node.addEventListener('dragstart', e => {
+    if (!sel.has(it.path)) { sel.clear(); sel.add(it.path); anchor = it.path; updateSel(); }
+    e.dataTransfer.setData('application/x-drive', JSON.stringify([...sel]));
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  if (it.isDir) dropTarget(node, it.path);
+}
+function onItemClick(it, e) {
+  const k = it.path;
+  if (e.shiftKey && anchor && shown.some(i => i.path === anchor)) {
+    const a = shown.findIndex(i => i.path === anchor), b = shown.findIndex(i => i.path === k);
+    if (!e.ctrlKey && !e.metaKey) sel.clear();
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) sel.add(shown[i].path);
+  } else if (e.ctrlKey || e.metaKey || (coarse && sel.size)) {
+    if (sel.has(k)) sel.delete(k); else sel.add(k);
+    anchor = k;
+  } else if (coarse) {
+    return open(it);
+  } else {
+    sel.clear(); sel.add(k); anchor = k;
+  }
+  updateSel();
+}
+function updateSel() {
+  for (const n of document.querySelectorAll('#content [data-path]')) n.classList.toggle('sel', sel.has(n.dataset.path));
+  renderSelbar();
+}
+const selectedItems = () => shown.filter(i => sel.has(i.path));
+function renderSelbar() {
+  const bar = $('#selbar');
+  const items = selectedItems();
+  bar.hidden = !items.length;
+  if (!items.length) return bar.replaceChildren();
+  bar.replaceChildren(
+    el('button', {textContent: '✕', title: 'Сонголтыг цуцлах (Esc)', onclick: () => { sel.clear(); updateSel(); }}),
+    el('span', {className: 'count', textContent: `${items.length} сонгосон`}),
+    ...actionsFor(items).filter(a => !a[3]).map(([label, fn, cls]) => el('button', {textContent: label, className: cls || '', onclick: fn})));
+}
+
+// Үйлдлүүд: [нэр, функц, класс, зөвхөн цэсэнд]
+function actionsFor(items) {
+  const one = items.length === 1 ? items[0] : null;
+  const paths = items.map(i => i.path);
+  if (mode === 'trash') return [
+    ['↺ Сэргээх', () => restore(paths)],
+    ['✕ Бүр мөсөн устгах', () => purge(paths), 'danger'],
+  ];
+  const a = [];
+  if (one) a.push(['Нээх', () => open(one), '', true]);
+  if (one && mode !== 'drive') a.push(['📂 Байршлыг нээх', () => go('drive', parentOf(one.path)), '', true]);
+  a.push([one && !one.isDir ? '⤓ Татах' : '⤓ ZIP-ээр татах', () => download(items)]);
+  if (one) a.push(['🔗 Хуваалцах', () => shareDialog(one)]);
+  const allStar = items.every(i => i.starred);
+  a.push([allStar ? '★ Одыг хасах' : '☆ Од нэмэх', () => star(paths, !allStar)]);
+  if (one) a.push(['✎ Нэр солих', () => rename(one)]);
+  a.push(['➜ Зөөх…', () => moveDialog(paths)]);
+  a.push(['🗑 Устгах', () => del(items), 'danger']);
+  return a;
+}
+
+let menuEl = null;
+function closeMenu() { menuEl?.remove(); menuEl = null; }
+function showMenu(e, entries) {
+  e.stopPropagation();
+  closeMenu();
+  menuEl = el('div', {className: 'menu'}, ...entries.map(([label, fn, cls]) =>
+    el('button', {textContent: label, className: cls || '', onclick: () => { closeMenu(); fn(); }})));
+  document.body.append(menuEl);
+  const r = menuEl.getBoundingClientRect();
+  menuEl.style.left = Math.max(8, Math.min(e.clientX, innerWidth - r.width - 8)) + 'px';
+  menuEl.style.top = Math.max(8, Math.min(e.clientY, innerHeight - r.height - 8)) + 'px';
+}
+document.addEventListener('click', closeMenu);
+
+function download(items) {
+  if (items.length === 1 && !items[0].isDir) { location.href = fileUrl(items[0].path); return; }
+  const f = el('form', {method: 'POST', action: '/api/zip'}, el('input', {type: 'hidden', name: 'data', value: JSON.stringify({paths: items.map(i => i.path)})}));
+  document.body.append(f);
+  f.submit();
+  f.remove();
+  toast('ZIP бэлтгэж байна… Татаж эхлэхэд хэсэг хугацаа шаардагдаж магадгүй');
+}
+async function star(paths, on) {
+  try { await post('/api/star', {paths, on}); } catch (e) { toast(e.message); }
+  load();
+}
+async function rename(it) {
+  const n = prompt('Шинэ нэр:', it.name);
+  if (!n || n === it.name) return;
+  try { await api(`/api/rename?path=${enc(it.path)}&newName=${enc(n)}`, {method: 'POST'}); } catch (e) { toast(e.message); }
+  load();
+}
+async function newFolder() {
+  const base = mode === 'drive' ? cur : '';
+  const n = prompt('Хавтасны нэр:', 'Шинэ хавтас');
+  if (!n) return;
+  try { await api(`/api/mkdir?path=${enc(base)}&name=${enc(n)}`, {method: 'POST'}); } catch (e) { return toast(e.message); }
+  if (mode === 'drive') load(); else go('drive', base);
+}
+async function move(paths, dest) {
+  try {
+    const r = await post('/api/move', {paths, dest});
+    sel.clear();
+    if (r.errors?.length) toast(r.errors.join('\n'));
+    else toast(`${paths.length} зүйлийг "${dest ? dest.split('/').pop() : 'Миний Драйв'}" руу зөөлөө`);
+  } catch (e) { toast(e.message); }
+  load();
+}
+async function del(items) {
+  try {
+    const r = await post('/api/delete', {paths: items.map(i => i.path)});
+    sel.clear();
+    toast(`${items.length} зүйлийг хогийн сав руу зөөлөө`, ['Буцаах', () => restore(r.ids)]);
+  } catch (e) { toast(e.message); }
+  load();
+}
+async function restore(ids) {
+  try {
+    const r = await post('/api/restore', {ids});
+    toast(r.errors?.length ? r.errors.join('\n') : `${ids.length} зүйлийг сэргээлээ`);
+  } catch (e) { toast(e.message); }
+  sel.clear();
+  load();
+}
+async function purge(ids) {
+  const msg = ids ? `${ids.length} зүйлийг бүр мөсөн устгах уу? Үүнийг буцаах боломжгүй.` : 'Хогийн савыг бүхэлд нь хоослох уу? Үүнийг буцаах боломжгүй.';
+  if (!confirm(msg)) return;
+  try { await post('/api/purge', ids ? {ids} : {all: true}); } catch (e) { toast(e.message); }
+  sel.clear();
+  load();
+}
+
+// Цонх (modal)
+let modalClose = null;
+function modal(title, kids, acts) {
+  const bg = el('div', {className: 'modal-bg', onmousedown: e => { if (e.target === bg) close(); }},
+    el('div', {className: 'modal', role: 'dialog'}, el('h3', {textContent: title, title}), ...kids, el('div', {className: 'acts'}, ...acts)));
+  function close() { bg.remove(); if (modalClose === close) modalClose = null; }
+  modalClose = close;
+  document.body.append(bg);
+  return {close};
+}
+
+function moveDialog(paths) {
+  const list = el('div', {className: 'mlist'}), crumbs = el('div', {className: 'mcrumbs'});
+  const ok = el('button', {className: 'btn primary', textContent: 'Энд зөөх'});
+  const m = modal(paths.length === 1 ? `"${paths[0].split('/').pop()}"-г зөөх` : `${paths.length} зүйлийг зөөх`, [crumbs, list],
+    [el('button', {className: 'btn', textContent: 'Цуцлах', onclick: () => m.close()}), ok]);
+  let at = '';
+  async function show(p) {
+    let d;
+    try { d = await api('/api/list?path=' + enc(p)); } catch (e) { return toast(e.message); }
+    at = p;
+    const parts = p ? p.split('/') : [];
+    crumbs.replaceChildren(el('button', {textContent: 'Миний Драйв', onclick: () => show('')}),
+      ...parts.flatMap((x, i) => [el('span', {className: 'muted', textContent: '›'}), el('button', {textContent: x, onclick: () => show(parts.slice(0, i + 1).join('/'))})]));
+    const dirs = d.items.filter(i => i.isDir && !paths.includes(i.path)).sort((a, b) => a.name.localeCompare(b.name, 'mn', {numeric: true}));
+    list.replaceChildren(...(dirs.length
+      ? dirs.map(i => el('button', {className: 'mrow', onclick: () => show(i.path)}, folderIcon(20), el('span', {textContent: i.name})))
+      : [el('div', {className: 'muted', style: 'padding:12px', textContent: 'Дэд хавтас алга'})]));
+    ok.disabled = paths.every(x => parentOf(x) === p);
+  }
+  ok.onclick = () => { m.close(); move(paths, at); };
+  show(mode === 'drive' ? cur : '');
+}
+
+function shareDialog(it) {
+  const body = el('div', {style: 'display:grid;gap:12px'});
+  const m = modal(`"${it.name}" хуваалцах`, [body], [el('button', {className: 'btn', textContent: 'Хаах', onclick: () => m.close()})]);
+  async function show() {
+    let r;
+    try { r = await api('/api/share?path=' + enc(it.path)); } catch (e) { return toast(e.message); }
+    body.replaceChildren();
+    if (r.share) {
+      const inp = el('input', {className: 'linkbox', value: r.base + '/s/' + r.share.token, readOnly: true, onclick: e => e.target.select()});
+      body.append(
+        el('p', {textContent: `Энэ холбоостой хэн ч нууц үггүйгээр ${it.isDir ? 'хавтсыг ZIP-ээр татаж' : 'файлыг нээж, татаж'} авна.`}),
+        inp,
+        el('p', {className: 'muted', textContent: r.share.expires ? 'Хүчинтэй хугацаа: ' + r.share.expiresText + ' хүртэл' : 'Хугацаагүй'}),
+        el('div', {className: 'acts', style: 'justify-content:flex-start'},
+          el('button', {className: 'btn primary', textContent: 'Холбоос хуулах', onclick: () => copyText(inp)}),
+          el('button', {className: 'btn danger', textContent: 'Хуваалцахыг зогсоох', onclick: async () => {
+            try { await post('/api/unshare', {path: it.path}); } catch (e) { toast(e.message); }
+            show();
+          }})));
+    } else {
+      const dur = el('select', {}, ...[['1', '1 өдөр'], ['7', '7 хоног'], ['30', '30 хоног'], ['0', 'Хугацаагүй']].map(([v, t]) => el('option', {value: v, textContent: t})));
+      dur.value = '7';
+      body.append(
+        el('p', {textContent: 'Нууц үггүйгээр нээгдэх холбоос үүсгэнэ. Хүссэн үедээ зогсоож болно.'}),
+        el('label', {style: 'display:flex;gap:10px;align-items:center'}, 'Хүчинтэй хугацаа:', dur),
+        el('div', {className: 'acts', style: 'justify-content:flex-start'},
+          el('button', {className: 'btn primary', textContent: 'Холбоос үүсгэх', onclick: async () => {
+            try { await post('/api/share', {path: it.path, days: +dur.value}); } catch (e) { toast(e.message); }
+            show();
+          }})));
+    }
+    if (r.warn) body.append(el('p', {className: 'warn', textContent: r.warn}));
+  }
+  show();
+}
+async function copyText(inp) {
+  try { await navigator.clipboard.writeText(inp.value); } catch { inp.select(); document.execCommand('copy'); }
+  toast('Холбоосыг хууллаа');
+}
+
+// Нээх, урьдчилан харах
+function open(it) {
+  if (mode === 'trash') return toast('Хогийн савны зүйлийг нээхийн тулд эхлээд сэргээнэ үү');
+  if (it.isDir) return go('drive', it.path);
+  post('/api/touch', {path: it.path}).catch(() => {});
+  const files = shown.filter(i => !i.isDir);
+  viewer(files, files.findIndex(i => i.path === it.path));
+}
+function preview(it) {
+  const u = fileUrl(it.path, true);
+  if (is(IMG, it.name)) return el('img', {src: u, alt: it.name});
+  if (is(VID, it.name)) return el('video', {src: u, controls: true, autoplay: true});
+  if (is(AUD, it.name)) return el('audio', {src: u, controls: true, autoplay: true});
+  if (ext(it.name) === 'pdf') return el('iframe', {src: u, className: 'doc', title: it.name});
+  if (is(TXT, it.name)) {
+    if (it.size > 2 * 1024 * 1024) return noPreview(it, 'Файл хэт том тул урьдчилан харах боломжгүй');
+    const pre = el('pre', {className: 'doc', textContent: 'Ачаалж байна…'});
+    fetch(u).then(r => r.ok ? r.text() : Promise.reject(new Error(r.statusText)))
+      .then(t => { pre.textContent = t; }, e => { pre.textContent = 'Алдаа: ' + e.message; });
+    return pre;
+  }
+  return noPreview(it, 'Энэ төрлийн файлыг урьдчилан харах боломжгүй');
+}
+function noPreview(it, msg) {
+  return el('div', {className: 'nopreview'}, badge(it.name, true), el('p', {textContent: msg}),
+    el('button', {className: 'btn primary', textContent: '⤓ Татах', onclick: () => location.href = fileUrl(it.path)}));
+}
+let viewerEl = null, viewerKeys = null;
+function closeViewer() { viewerEl?.remove(); viewerEl = viewerKeys = null; }
+function viewer(list, idx) {
+  closeViewer();
+  const stage = el('div', {className: 'stage'});
+  const title = el('span', {className: 'name'});
+  const dl = el('button', {textContent: '⤓', title: 'Татах'});
+  const prev = el('button', {className: 'nav', textContent: '‹', title: 'Өмнөх (←)', onclick: () => showAt(idx - 1)});
+  const next = el('button', {className: 'nav', textContent: '›', title: 'Дараах (→)', onclick: () => showAt(idx + 1)});
+  const body = el('div', {className: 'body'}, prev, stage, next);
+  const v = viewerEl = el('div', {className: 'viewer', onclick: e => { if (e.target === body || e.target === stage) closeViewer(); }},
+    el('header', {}, title, dl, el('button', {textContent: '✕', title: 'Хаах (Esc)', onclick: closeViewer})), body);
+  function showAt(i) {
+    if (i < 0 || i >= list.length) return;
+    idx = i;
+    const it = list[i];
+    title.textContent = it.name;
+    dl.onclick = () => location.href = fileUrl(it.path);
+    prev.style.visibility = i > 0 ? '' : 'hidden';
+    next.style.visibility = i < list.length - 1 ? '' : 'hidden';
+    stage.replaceChildren(preview(it));
+  }
+  viewerKeys = e => {
+    if (e.key === 'Escape') closeViewer();
+    else if (e.key === 'ArrowLeft') showAt(idx - 1);
+    else if (e.key === 'ArrowRight') showAt(idx + 1);
+  };
+  document.body.append(v);
+  showAt(idx);
+}
+
+// Удирдлага
+$('#newBtn').onclick = e => showMenu(e, [
+  ['📁  Шинэ хавтас', newFolder],
+  ['⤒  Файл байршуулах', () => $('#fileInput').click()],
+  ['⤒  Хавтас байршуулах', () => $('#dirInput').click()],
+]);
+$('#fileInput').onchange = e => { upload([...e.target.files].map(file => ({file, rel: ''}))); e.target.value = ''; };
+$('#dirInput').onchange = e => { upload([...e.target.files].map(file => ({file, rel: parentOf(file.webkitRelativePath)}))); e.target.value = ''; };
+for (const b of document.querySelectorAll('#side button')) b.onclick = () => go(b.dataset.mode, '');
+dropTarget(document.querySelector('#side [data-mode="drive"]'), '');
+$('#search').oninput = () => { if (mode !== 'search') render(); };
+$('#search').onkeydown = e => {
+  if (e.key === 'Enter') {
+    const v = e.target.value.trim();
+    if (v) { query = v; load('', 'search'); }
+  } else if (e.key === 'Escape') {
+    e.target.value = '';
+    if (mode === 'search') go('drive', cur); else render();
+  }
+};
+$('#sortSel').onchange = e => { sortKey = e.target.value; store.set('sortKey', sortKey); render(); };
+$('#sortDir').onclick = () => { sortDir = -sortDir; store.set('sortDir', sortDir); render(); };
+$('#viewToggle').onclick = () => {
+  view = view === 'grid' ? 'list' : 'grid';
+  store.set('view', view);
+  render();
+};
+$('#content').addEventListener('click', e => {
+  if (!e.target.closest('[data-path]') && sel.size) { sel.clear(); updateSel(); }
+});
+$('#content').addEventListener('contextmenu', e => {
+  if (e.target.closest('[data-path]') || mode !== 'drive') return;
+  e.preventDefault();
+  showMenu(e, [
+    ['📁  Шинэ хавтас', newFolder],
+    ['⤒  Файл байршуулах', () => $('#fileInput').click()],
+    ['⤒  Хавтас байршуулах', () => $('#dirInput').click()],
+  ]);
+});
+document.addEventListener('keydown', e => {
+  if (viewerKeys) return viewerKeys(e);
+  if (modalClose) { if (e.key === 'Escape') modalClose(); return; }
+  if (e.target.matches('input, textarea, select')) return;
+  const items = selectedItems();
+  if (e.key === 'Escape') { closeMenu(); sel.clear(); updateSel(); }
+  else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); shown.forEach(i => sel.add(i.path)); updateSel(); }
+  else if (e.key === 'Delete' && items.length) { if (mode === 'trash') purge(items.map(i => i.path)); else del(items); }
+  else if (e.key === 'F2' && items.length === 1 && mode !== 'trash') { e.preventDefault(); rename(items[0]); }
+  else if (e.key === 'Enter' && items.length === 1) open(items[0]);
+});
+
+// Байршуулалт
+let queue = [], active = null, panel = null, refreshT = null;
+function refreshSoon() {
+  clearTimeout(refreshT);
+  refreshT = setTimeout(() => { if (mode === 'drive') load(); }, 600);
+}
+function upload(entries, base = mode === 'drive' ? cur : '') {
+  entries = entries.filter(x => x.file);
+  if (!entries.length) return;
+  if (!data.quota) return toast(NO_SERVER);
+  const total = entries.reduce((s, x) => s + x.file.size, 0);
+  if (data.used + total > data.quota) return toast(`Багтаамж хүрэлцэхгүй: ${fmt(total)} хэрэгтэй, ${fmt(data.quota - data.used)} үлдсэн`);
+  if (!panel) {
+    panel = el('div', {className: 'uploads'},
+      el('h4', {}, el('span', {textContent: 'Байршуулалт'}), el('span', {},
+        el('button', {textContent: 'Бүгдийг цуцлах', onclick: () => [...queue, active].forEach(j => j && cancelJob(j))}),
+        el('button', {textContent: '✕', title: 'Хаах', onclick: closePanel}))),
+      el('ul'));
+    document.body.append(panel);
+  }
+  for (const {file, rel} of entries) {
+    const job = {f: file, dir: join(base, rel || '')};
+    const label = rel ? rel + '/' + file.name : file.name;
+    job.pct = el('span', {textContent: 'хүлээж байна'});
+    job.bar = el('i', {style: 'width:0'});
+    job.cancel = el('button', {textContent: '✕', title: 'Цуцлах', onclick: () => cancelJob(job)});
+    job.li = el('li', {}, el('div', {}, el('span', {textContent: label, title: label}), el('span', {className: 'st'}, job.pct, job.cancel)), el('div', {className: 'bar'}, job.bar));
+    panel.querySelector('ul').append(job.li);
+    queue.push(job);
+  }
+  next();
+}
+function closePanel() {
+  if (active || queue.length) {
+    if (!confirm('Байршуулалт дуусаагүй байна. Цуцлах уу?')) return;
+    [...queue, active].forEach(j => j && cancelJob(j));
+  }
+  panel?.remove();
+  panel = null;
+}
+function cancelJob(job) {
+  if (job.finished) return;
+  if (job === active) job.xhr.abort();
+  else { queue = queue.filter(j => j !== job); finish(job, false, 'Цуцалсан'); }
+}
+function finish(job, ok, msg) {
+  job.finished = true;
+  job.pct.textContent = ok ? '✓' : msg;
+  job.cancel.remove();
+  if (!ok) job.li.classList.add('err');
+}
+function next() {
+  if (active || !queue.length) return;
+  const job = active = queue.shift();
+  const xhr = job.xhr = new XMLHttpRequest();
+  xhr.open('PUT', `/api/upload?path=${enc(job.dir)}&name=${enc(job.f.name)}`);
+  xhr.upload.onprogress = e => {
+    if (!e.lengthComputable) return;
+    const p = e.loaded / e.total * 100;
+    job.bar.style.width = p + '%';
+    job.pct.textContent = Math.floor(p) + '%';
+  };
+  const done = (ok, msg) => { finish(job, ok, msg); active = null; refreshSoon(); next(); };
+  xhr.onload = () => {
+    if (xhr.status < 300) return done(true);
+    let m = 'Алдаа'; try { m = JSON.parse(xhr.responseText).error || m; } catch {}
+    done(false, m);
+  };
+  xhr.onerror = () => done(false, 'Холболт тасарсан');
+  xhr.onabort = () => done(false, 'Цуцалсан');
+  xhr.send(job.f);
+}
+
+// Чирж оруулах (файл, хавтас хоёуланг нь)
+async function readEntry(entry, rel, out) {
+  if (entry.isFile) {
+    out.push({file: await new Promise((res, rej) => entry.file(res, rej)), rel});
+  } else if (entry.isDirectory) {
+    const sub = join(rel, entry.name), reader = entry.createReader();
+    for (;;) {
+      const batch = await new Promise((res, rej) => reader.readEntries(res, rej));
+      if (!batch.length) break;
+      for (const x of batch) await readEntry(x, sub, out);
+    }
+  }
+}
+async function dropFiles(dt, base) {
+  const entries = [...dt.items].filter(i => i.kind === 'file').map(i => i.webkitGetAsEntry?.()).filter(Boolean);
+  if (!entries.length) return upload([...dt.files].map(file => ({file, rel: ''})), base);
+  const out = [];
+  try { for (const x of entries) await readEntry(x, '', out); } catch (e) { toast('Файл уншиж чадсангүй: ' + e.message); }
+  upload(out, base);
+}
+// Хавтас руу чирж зөөх эсвэл компьютерээс шууд тухайн хавтас руу оруулах
+function dropTarget(node, dest) {
+  const accepts = e => e.dataTransfer.types.includes('application/x-drive') || e.dataTransfer.types.includes('Files');
+  node.addEventListener('dragover', e => {
+    if (!accepts(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    node.classList.add('dropto');
+  });
+  node.addEventListener('dragleave', () => node.classList.remove('dropto'));
+  node.addEventListener('drop', e => {
+    if (!accepts(e)) return;
+    e.preventDefault(); e.stopPropagation();
+    node.classList.remove('dropto');
+    hideDrop();
+    const d = e.dataTransfer.getData('application/x-drive');
+    if (d) {
+      const paths = JSON.parse(d).filter(p => p !== dest && parentOf(p) !== dest);
+      if (paths.length) move(paths, dest);
+    } else dropFiles(e.dataTransfer, dest);
+  });
+}
+const main = $('#main');
+let dragDepth = 0, dropEl = null;
+function hideDrop() { dragDepth = 0; dropEl?.remove(); dropEl = null; }
+main.addEventListener('dragenter', e => {
+  if (!e.dataTransfer.types.includes('Files')) return;
+  e.preventDefault();
+  if (dragDepth++ === 0) { dropEl = el('div', {className: 'drop', textContent: 'Файл, хавтсаа энд тавина уу'}); main.append(dropEl); }
+});
+main.addEventListener('dragover', e => e.preventDefault());
+main.addEventListener('dragleave', e => { if (e.dataTransfer.types.includes('Files') && --dragDepth <= 0) hideDrop(); });
+main.addEventListener('drop', e => {
+  e.preventDefault();
+  hideDrop();
+  if (e.dataTransfer.types.includes('Files')) dropFiles(e.dataTransfer);
+});
+
+go('drive', '');
+</script>
+</body>
+</html>
