@@ -422,8 +422,9 @@ $handler = {
             return
         }
         $auth = $req.Headers['Authorization']
-        $ok = $false
-        if ($auth -and $auth.StartsWith('Basic ')) {
+        # config.json-д нууц үг хоосон бол нэвтрэлтгүйгээр нээлттэй
+        $ok = -not $cfg.Password
+        if (-not $ok -and $auth -and $auth.StartsWith('Basic ')) {
             try {
                 $dec = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($auth.Substring(6)))
                 $i = $dec.IndexOf(':')
